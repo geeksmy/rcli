@@ -1,11 +1,32 @@
-fn main() {
-    println!("Hello, rust!");
-}
+use clap::Parser;
+use rcli::{
+    Base64SubCommand, Opts, SubCommand, process_csv, process_decode, process_encode,
+    process_genpass,
+};
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_main() {
-        assert_eq!(2 + 2, 4);
+fn main() -> anyhow::Result<()> {
+    let opts = Opts::parse();
+    match opts.cmd {
+        SubCommand::Csv(opts) => {
+            let output = if let Some(output) = opts.output {
+                output.clone()
+            } else {
+                format!("output.{}", opts.format)
+            };
+            process_csv(&opts.input, &output, opts.format)?
+        }
+        SubCommand::GenPass(opts) => process_genpass(
+            opts.length,
+            opts.uppercase,
+            opts.lowercase,
+            opts.numbers,
+            opts.symbols,
+        )?,
+        SubCommand::Base64(sub_cmd) => match sub_cmd {
+            Base64SubCommand::Encode(opts) => process_encode(&opts.input, opts.format)?,
+            Base64SubCommand::Decode(opts) => process_decode(&opts.input, opts.format)?,
+        },
     }
+
+    Ok(())
 }
