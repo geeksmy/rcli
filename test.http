@@ -1,0 +1,2 @@
+GET http://localhost:8080/assets/blake3.txt
+Accept: application/json

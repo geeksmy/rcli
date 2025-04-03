@@ -1,12 +1,16 @@
 use clap::Parser;
 use rcli::{
-    Base64SubCommand, Opts, SubCommand, TextFormat, TextSubCommand, process_csv, process_decode,
-    process_encode, process_genpass, process_sign, process_text_generator, process_verify,
+    Base64SubCommand, HttpSubCommand, Opts, SubCommand, TextFormat, TextSubCommand, process_csv,
+    process_decode, process_encode, process_genpass, process_http_serve, process_sign,
+    process_text_generator, process_verify,
 };
 use std::fs;
 use zxcvbn::zxcvbn;
 
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::fmt::init();
+
     let opts = Opts::parse();
     match opts.cmd {
         SubCommand::Csv(opts) => {
@@ -64,6 +68,9 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
             }
+        },
+        SubCommand::Http(sub_cmd) => match sub_cmd {
+            HttpSubCommand::Serve(opts) => process_http_serve(opts.dir, opts.port).await?,
         },
     }
 
