@@ -1,4 +1,4 @@
-use super::verify_input_file;
+use super::verify_file;
 use clap::Parser;
 use std::fmt;
 use std::fmt::Formatter;
@@ -15,7 +15,7 @@ pub enum Base64SubCommand {
 #[derive(Debug, Parser)]
 pub struct Base64EncodeOpts {
     /// 输入编码的字符串
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = verify_file, default_value = "-")]
     pub input: String,
     /// 输出格式, 支持(standard, urlsafe)
     #[arg(short, long, value_parser = parser_base64_format, default_value = "standard")]
@@ -25,7 +25,7 @@ pub struct Base64EncodeOpts {
 #[derive(Debug, Parser)]
 pub struct Base64DecodeOpts {
     /// 输入解码的Base64字符串
-    #[arg(short, long, value_parser = verify_input_file, default_value = "-")]
+    #[arg(short, long, value_parser = verify_file, default_value = "-")]
     pub input: String,
     /// 输出格式, 支持(standard, urlsafe)
     #[arg(short, long, value_parser = parser_base64_format, default_value = "standard")]

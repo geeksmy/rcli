@@ -1,15 +1,17 @@
-pub mod base64;
-pub mod csv;
+pub mod b64;
+pub mod csv_convert;
 pub mod gen_pass;
+pub mod text;
 
-use self::csv::CsvOpts;
+use self::csv_convert::CsvOpts;
 use clap::Parser;
 use gen_pass::GenPassOpts;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub use self::{
-    base64::{Base64Format, Base64SubCommand},
-    csv::OutputFormat,
+    b64::{Base64Format, Base64SubCommand},
+    csv_convert::OutputFormat,
+    text::{TextFormat, TextSubCommand},
 };
 
 #[derive(Debug, Parser)]
@@ -27,13 +29,24 @@ pub enum SubCommand {
     GenPass(GenPassOpts),
     #[command(subcommand)]
     Base64(Base64SubCommand),
+    #[command(subcommand)]
+    Text(TextSubCommand),
 }
 
-fn verify_input_file(input: &str) -> Result<String, &'static str> {
+fn verify_file(input: &str) -> Result<String, &'static str> {
     if input == "-" || Path::new(input).exists() {
         Ok(input.into())
     } else {
         Err("文件不存在!!!")
+    }
+}
+
+fn verify_path(input: &str) -> Result<PathBuf, &'static str> {
+    let path = Path::new(input);
+    if path.exists() && path.is_dir() {
+        Ok(path.into())
+    } else {
+        Err("路径不存在或目录不存在!!!")
     }
 }
 
@@ -43,9 +56,9 @@ mod tests {
 
     #[test]
     fn test_verify_input_file() {
-        assert_eq!(verify_input_file("-"), Ok("-".into()));
-        assert_eq!(verify_input_file("*"), Err("文件不存在!!!"));
-        assert_eq!(verify_input_file("Cargo.toml"), Ok("Cargo.toml".into()));
-        assert_eq!(verify_input_file("not-exist"), Err("文件不存在!!!"));
+        assert_eq!(verify_file("-"), Ok("-".into()));
+        assert_eq!(verify_file("*"), Err("文件不存在!!!"));
+        assert_eq!(verify_file("Cargo.toml"), Ok("Cargo.toml".into()));
+        assert_eq!(verify_file("not-exist"), Err("文件不存在!!!"));
     }
 }
