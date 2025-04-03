@@ -63,7 +63,6 @@ commit_preprocessors = [
 # 用于解析和分组提交记录的正则表达式
 commit_parsers = [
     { message = "\\[skip", skip = true }, # 跳过包含 "[skip]" 的提交
-    { message = "\\p{Han}", skip = true }, # 跳过包含中文的提交
     { message = "^feat", group = "Features" }, # 分组至 "功能"
     { message = "^fix", group = "Bug Fixes" }, # 分组至 "修复"
     { message = "^doc", group = "Documentation" }, # 分组至 "文档"
