@@ -1,3 +1,3 @@
 # RCLI
 
-rust工具集
+rust 学习记录
