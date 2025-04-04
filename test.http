@@ -1,2 +1,8 @@
+### 测试Axum state 基础文件服务
+
 GET http://localhost:8080/assets/blake3.txt
 Accept: application/json
+
+### 测试tower_http 文件服务
+
+GET http://localhost:8080/tower/assets/pk.pem
