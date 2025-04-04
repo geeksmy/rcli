@@ -1,11 +1,13 @@
 use super::{verify_file, verify_path};
 use crate::{CmdExecute, process_sign, process_text_generator, process_verify};
 use clap::Parser;
+use enum_dispatch::enum_dispatch;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::{fmt, fs};
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecute)]
 pub enum TextSubCommand {
     #[command(about = "使用私钥或共享秘钥对文本签名")]
     Sign(TextSignOpts),
@@ -13,16 +15,6 @@ pub enum TextSubCommand {
     Verify(TextVerifyOpts),
     #[command(about = "生成Key")]
     Generate(TextKeyGenerateOpts),
-}
-
-impl CmdExecute for TextSubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            TextSubCommand::Sign(opts) => opts.execute().await,
-            TextSubCommand::Verify(opts) => opts.execute().await,
-            TextSubCommand::Generate(opts) => opts.execute().await,
-        }
-    }
 }
 
 #[derive(Debug, Parser)]

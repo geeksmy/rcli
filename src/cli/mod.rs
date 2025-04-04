@@ -4,16 +4,15 @@ pub mod gen_pass;
 pub mod http_serve;
 pub mod text;
 
-use self::csv_convert::CsvOpts;
 pub use self::{
-    b64::{Base64Format, Base64SubCommand},
-    csv_convert::OutputFormat,
-    http_serve::HttpSubCommand,
-    text::{TextFormat, TextSubCommand},
+    b64::{Base64DecodeOpts, Base64EncodeOpts, Base64Format, Base64SubCommand},
+    csv_convert::{CsvOpts, OutputFormat},
+    gen_pass::GenPassOpts,
+    http_serve::{HttpServeOpts, HttpSubCommand},
+    text::{TextFormat, TextKeyGenerateOpts, TextSignOpts, TextSubCommand, TextVerifyOpts},
 };
-use crate::CmdExecute;
 use clap::Parser;
-use gen_pass::GenPassOpts;
+use enum_dispatch::enum_dispatch;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Parser)]
@@ -24,6 +23,7 @@ pub struct Opts {
 }
 
 #[derive(Debug, Parser)]
+#[enum_dispatch(CmdExecute)]
 pub enum SubCommand {
     #[command(name = "csv", about = "显示CSV或将CSV转换为其他格式")]
     Csv(CsvOpts),
@@ -35,18 +35,6 @@ pub enum SubCommand {
     Text(TextSubCommand),
     #[command(subcommand, about = "Http 文件服务")]
     Http(HttpSubCommand),
-}
-
-impl CmdExecute for SubCommand {
-    async fn execute(self) -> anyhow::Result<()> {
-        match self {
-            SubCommand::Csv(opts) => opts.execute().await,
-            SubCommand::GenPass(opts) => opts.execute().await,
-            SubCommand::Base64(opts) => opts.execute().await,
-            SubCommand::Text(opts) => opts.execute().await,
-            SubCommand::Http(opts) => opts.execute().await,
-        }
-    }
 }
 
 fn verify_file(input: &str) -> Result<String, &'static str> {
