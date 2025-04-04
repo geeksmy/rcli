@@ -11,6 +11,7 @@ pub use self::{
     http_serve::{HttpServeOpts, HttpSubCommand},
     text::{TextFormat, TextKeyGenerateOpts, TextSignOpts, TextSubCommand, TextVerifyOpts},
 };
+use crate::CmdExecute;
 use clap::Parser;
 use enum_dispatch::enum_dispatch;
 use std::path::{Path, PathBuf};
@@ -20,6 +21,12 @@ use std::path::{Path, PathBuf};
 pub struct Opts {
     #[command(subcommand)]
     pub cmd: SubCommand,
+}
+
+impl CmdExecute for Opts {
+    async fn execute(self) -> anyhow::Result<()> {
+        self.cmd.execute().await
+    }
 }
 
 #[derive(Debug, Parser)]
