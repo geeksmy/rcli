@@ -1,8 +1,9 @@
 use super::{verify_file, verify_path};
+use crate::{CmdExecute, process_sign, process_text_generator, process_verify};
 use clap::Parser;
-use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::{fmt, fs};
 
 #[derive(Debug, Parser)]
 pub enum TextSubCommand {
@@ -12,6 +13,16 @@ pub enum TextSubCommand {
     Verify(TextVerifyOpts),
     #[command(about = "生成Key")]
     Generate(TextKeyGenerateOpts),
+}
+
+impl CmdExecute for TextSubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            TextSubCommand::Sign(opts) => opts.execute().await,
+            TextSubCommand::Verify(opts) => opts.execute().await,
+            TextSubCommand::Generate(opts) => opts.execute().await,
+        }
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -25,6 +36,15 @@ pub struct TextSignOpts {
     /// 签名格式(blank3, ed25519)
     #[arg(short, long, value_parser = parse_format, default_value = "blake3")]
     pub format: TextFormat,
+}
+
+impl CmdExecute for TextSignOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let signed = process_sign(&self.input, &self.key, self.format)?;
+
+        println!("{}", signed);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Parser)]
@@ -42,6 +62,12 @@ pub struct TextVerifyOpts {
     pub format: TextFormat,
 }
 
+impl CmdExecute for TextVerifyOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        process_verify(&self.input, &self.key, self.format, &self.sign)
+    }
+}
+
 #[derive(Debug, Parser)]
 pub struct TextKeyGenerateOpts {
     /// 签名格式(blank3, ed25519)
@@ -50,6 +76,25 @@ pub struct TextKeyGenerateOpts {
     /// 输出文件路径
     #[arg(short, long, value_parser = verify_path)]
     pub output: PathBuf,
+}
+
+impl CmdExecute for TextKeyGenerateOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let key = process_text_generator(self.format)?;
+        match self.format {
+            TextFormat::Blake3 => {
+                let name = self.output.join("blake3.txt");
+                fs::write(name, &key[0])?;
+            }
+            TextFormat::Ed25519 => {
+                let name = &self.output;
+                fs::write(name.join("sk.pem"), &key[0])?;
+                fs::write(name.join("pk.pem"), &key[1])?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy)]

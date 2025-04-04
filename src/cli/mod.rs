@@ -5,16 +5,16 @@ pub mod http_serve;
 pub mod text;
 
 use self::csv_convert::CsvOpts;
-use clap::Parser;
-use gen_pass::GenPassOpts;
-use std::path::{Path, PathBuf};
-
 pub use self::{
     b64::{Base64Format, Base64SubCommand},
     csv_convert::OutputFormat,
     http_serve::HttpSubCommand,
     text::{TextFormat, TextSubCommand},
 };
+use crate::CmdExecute;
+use clap::Parser;
+use gen_pass::GenPassOpts;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Parser)]
 #[command(name = "rcli", version, author, about, long_about = None)]
@@ -29,12 +29,24 @@ pub enum SubCommand {
     Csv(CsvOpts),
     #[command(name = "genpass", about = "生成随机密码")]
     GenPass(GenPassOpts),
-    #[command(subcommand)]
+    #[command(subcommand, about = "使用Base64编解码")]
     Base64(Base64SubCommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "对文本加解密")]
     Text(TextSubCommand),
-    #[command(subcommand)]
+    #[command(subcommand, about = "Http 文件服务")]
     Http(HttpSubCommand),
+}
+
+impl CmdExecute for SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            SubCommand::Csv(opts) => opts.execute().await,
+            SubCommand::GenPass(opts) => opts.execute().await,
+            SubCommand::Base64(opts) => opts.execute().await,
+            SubCommand::Text(opts) => opts.execute().await,
+            SubCommand::Http(opts) => opts.execute().await,
+        }
+    }
 }
 
 fn verify_file(input: &str) -> Result<String, &'static str> {

@@ -1,4 +1,5 @@
 use super::verify_file;
+use crate::{CmdExecute, process_decode, process_encode};
 use clap::Parser;
 use std::fmt;
 use std::fmt::Formatter;
@@ -12,6 +13,15 @@ pub enum Base64SubCommand {
     Decode(Base64DecodeOpts),
 }
 
+impl CmdExecute for Base64SubCommand {
+    async fn execute(self) -> anyhow::Result<()> {
+        match self {
+            Base64SubCommand::Encode(opts) => opts.execute().await,
+            Base64SubCommand::Decode(opts) => opts.execute().await,
+        }
+    }
+}
+
 #[derive(Debug, Parser)]
 pub struct Base64EncodeOpts {
     /// 输入编码的字符串
@@ -22,6 +32,14 @@ pub struct Base64EncodeOpts {
     pub format: Base64Format,
 }
 
+impl CmdExecute for Base64EncodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let encoded = process_encode(&self.input, self.format)?;
+        println!("{}", encoded);
+        Ok(())
+    }
+}
+
 #[derive(Debug, Parser)]
 pub struct Base64DecodeOpts {
     /// 输入解码的Base64字符串
@@ -30,6 +48,15 @@ pub struct Base64DecodeOpts {
     /// 输出格式, 支持(standard, urlsafe)
     #[arg(short, long, value_parser = parser_base64_format, default_value = "standard")]
     pub format: Base64Format,
+}
+
+impl CmdExecute for Base64DecodeOpts {
+    async fn execute(self) -> anyhow::Result<()> {
+        let decoded = process_decode(&self.input, self.format)?;
+        let decoded = String::from_utf8(decoded)?;
+        println!("{}", decoded);
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
